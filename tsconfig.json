@@ -1,0 +1,18 @@
+{
+	"compilerOptions": {
+		"declaration": true,
+		"forceConsistentCasingInFileNames": true,
+		"lib": ["ESNext"],
+		"module": "ESNext",
+		"moduleResolution": "Bundler",
+		"outDir": "dist/",
+		"resolveJsonModule": true,
+		"rootDir": "lib/",
+		"target": "ESNext",
+		"esModuleInterop": true,
+		"strict": true,
+		"skipLibCheck": true,
+		"emitDeclarationOnly": true
+	},
+	"exclude": ["dist/", "node_modules", "**/node_modules/*", "lib/**/*.test.ts"]
+}
