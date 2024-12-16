@@ -1,6 +1,7 @@
 import { parseFile } from 'bplist-parser';
 import StreamZip from 'node-stream-zip';
-import { basename, isAbsolute, join, parse } from 'node:path';
+import { basename, isAbsolute, join } from 'node:path';
+import { parse } from 'plist';
 import { _parse_provision, _try_prom } from '../util';
 import { _filter_icons, _icon_clean_name, _icon_fix, type RawInfo, type RawIPA } from './util';
 
