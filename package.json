@@ -1,26 +1,29 @@
 {
 	"name": "parse-ipa",
-	"version": "2.1.2",
-	"main": "./dist/index.js",
-	"types": "./dist/index.d.ts",
+	"version": "2.2.0",
 	"license": "MIT",
 	"type": "module",
 	"files": ["dist"],
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"browser": "./dist/browser.js",
+	"exports": {
+		".": "./dist/index.js"
+	},
 	"scripts": {
 		"build": "./build.sh",
 		"dev": "nodemon -w lib/ -e ts --exec bun test"
 	},
 	"devDependencies": {
+		"typescript": "5.7.2",
 		"@biomejs/biome": "1.9.4",
 		"@types/bun": "latest",
-		"nodemon": "3.1.9",
-		"@types/plist": "3.0.5"
+		"nodemon": "3.1.9"
 	},
 	"dependencies": {
-		"bplist-parser": "0.3.2",
 		"cgbi-to-png": "1.0.7",
-		"node-stream-zip": "1.15.0",
+		"jszip": "^3.10.1",
 		"partialzip": "3.1.1",
-		"plist": "3.1.0"
+		"@plist/plist": "1.0.0"
 	}
 }

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
 rm -rf dist &&
-bun build --target=node --minify lib/index.ts --outdir dist --external partialzip --external bplist-parser --external plist --external cgbi-to-png --external node-stream-zip &&
+bun build --target=node --minify lib/index.ts --outfile dist/index.js --packages external &&
+bun build --target=browser --minify lib/browser.ts --outfile dist/browser.js --packages external &&
 tsc -p .

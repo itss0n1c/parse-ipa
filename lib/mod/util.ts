@@ -1,12 +1,9 @@
-import cgbi from 'cgbi-to-png';
-import { basename } from 'node:path';
-import { Readable } from 'node:stream';
 import type { _ParsedProvision, IPAOrigin } from '../types';
 
 export interface RawIPA {
 	info: Record<string, string>;
 	size: number;
-	icon?: Buffer;
+	icon?: Uint8Array;
 	duration: number;
 	provision?: _ParsedProvision;
 	origin: IPAOrigin;
@@ -14,23 +11,6 @@ export interface RawIPA {
 
 // biome-ignore lint/suspicious/noExplicitAny: <explanation>
 export type RawInfo = Record<string, any>;
-
-export function _icon_fix(icon: Uint8Array): Promise<Buffer> {
-	const stream = new Readable({
-		read() {
-			this.push(icon);
-			this.push(null);
-		},
-	});
-	return new Promise((resolve, reject) =>
-		cgbi(stream, (err, stream) => {
-			if (err) return reject(err);
-			const chunks: Array<Uint8Array> = [];
-			stream.on('data', (chunk) => chunks.push(chunk));
-			stream.on('end', () => resolve(Buffer.concat(chunks)));
-		}),
-	);
-}
 
 export function _icon_clean_name(str: string): [number, number] {
 	const base_name = basename(str).replace('AppIcon', '').replace('.png', '').replace('~ipad', '');
@@ -59,4 +39,25 @@ export function _filter_icons(info: RawInfo, _icon_arr: string[]) {
 		else icon_arr = info.CFBundleIconFiles;
 	}
 	return icon_arr;
+}
+
+export function basename(path: string, suffix?: string): string {
+	const p = path.split('/').pop();
+	if (!p) return '';
+	return suffix && p.endsWith(suffix) ? p.slice(0, -suffix.length) : p;
+}
+
+export const isAbsolute = (path: string): boolean => path.startsWith('/');
+
+export function join(...args: string[]): string {
+	if (args.length === 0) return '';
+	if (args.length === 1) return args[0];
+	let path = '';
+	for (const arg of args) {
+		if (arg.startsWith('/')) {
+			if (path.endsWith('/')) path += arg.slice(1);
+			else path += arg;
+		} else path += `/${arg}`;
+	}
+	return path;
 }

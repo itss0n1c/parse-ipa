@@ -1,11 +1,8 @@
-import { parseFile } from 'bplist-parser';
-import cgbi from 'cgbi-to-png';
-import { basename } from 'node:path';
-import { Readable } from 'node:stream';
+import { parse } from '@plist/plist';
 import { PartialZip } from 'partialzip';
-import { parse } from 'plist';
 import { _parse_provision, _try_prom } from '../util';
-import { _filter_icons, type RawInfo, type RawIPA } from './util';
+import { _icon_fix } from './cgbi';
+import { _filter_icons, basename, type RawInfo, type RawIPA } from './util';
 
 class PartialZipWithSize extends PartialZip {
 	file_size!: number;
@@ -14,23 +11,6 @@ class PartialZipWithSize extends PartialZip {
 		await super.init();
 		this.file_size = this.size;
 	}
-}
-
-function _icon_fix(icon: Uint8Array): Promise<Buffer> {
-	const stream = new Readable({
-		read() {
-			this.push(icon);
-			this.push(null);
-		},
-	});
-	return new Promise((resolve, reject) =>
-		cgbi(stream, (err, stream) => {
-			if (err) return reject(err);
-			const chunks: Array<Uint8Array> = [];
-			stream.on('data', (chunk) => chunks.push(chunk));
-			stream.on('end', () => resolve(Buffer.concat(chunks)));
-		}),
-	);
 }
 
 function _icon_clean_name(str: string): [number, number] {
@@ -61,15 +41,23 @@ function _get_file(match: string, zip: PartialZipWithSize) {
 	return matching;
 }
 
+function buf_to_arraybuffer(buf: Buffer) {
+	const arrayBuffer = new ArrayBuffer(buf.length);
+	const view = new Uint8Array(arrayBuffer);
+	for (let i = 0; i < buf.length; i++) {
+		view[i] = buf[i];
+	}
+	return arrayBuffer;
+}
+
 async function _get_info(zip: PartialZipWithSize) {
 	const file = _get_file('.app/Info.plist', zip);
 	const buf = await zip.get(file);
-	const info = await _try_prom(parseFile(buf));
-	if (!info) return parse(buf.toString()) as RawInfo;
-	return info[0];
+	const arrayBuffer = buf_to_arraybuffer(buf);
+	return parse(arrayBuffer) as RawInfo;
 }
 
-async function _get_icon(info: RawInfo, zip: PartialZipWithSize): Promise<Buffer> {
+async function _get_icon(info: RawInfo, zip: PartialZipWithSize) {
 	let icon_arr: string[] = [];
 	for (const file of zip.files.values()) {
 		if (!file.fileName.includes('AppIcon')) continue;

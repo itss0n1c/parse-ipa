@@ -2,8 +2,8 @@ export type _ParsedProvision = Record<'AppIDName' | 'Name' | 'TeamName' | 'UUID'
 	Record<'ApplicationIdentifierPrefix' | 'Platform' | 'ProvisionedDevices' | 'TeamIdentifier', string[]> &
 	Record<'CreationDate' | 'ExpirationDate', Date> &
 	Record<'IsXcodeManaged', false> &
-	Record<'DeveloperCertificates', Buffer[]> &
-	Record<'DER-Encoded-Profile', Buffer> &
+	Record<'DeveloperCertificates', ArrayBuffer[]> &
+	Record<'DER-Encoded-Profile', ArrayBuffer> &
 	Record<'Entitlements', Record<string, unknown>> &
 	Record<'TimeToLive' | 'Version', number>;
 
@@ -11,7 +11,7 @@ export type Provision = Omit<_ParsedProvision, 'DeveloperCertificates' | 'DER-En
 	Record<'DeveloperCertificates', string[]> &
 	Record<'DER-Encoded-Profile', string>;
 
-export type IPAOriginType = 'url' | 'file';
+export type IPAOriginType = 'url' | 'file' | 'blob';
 export interface IPAOrigin {
 	type: IPAOriginType;
 	value: string;
