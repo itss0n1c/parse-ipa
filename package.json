@@ -1,6 +1,6 @@
 {
 	"name": "parse-ipa",
-	"version": "2.2.0",
+	"version": "2.2.1",
 	"license": "MIT",
 	"type": "module",
 	"files": ["dist"],
@@ -8,7 +8,8 @@
 	"types": "./dist/index.d.ts",
 	"browser": "./dist/browser.js",
 	"exports": {
-		".": "./dist/index.js"
+		"browser": "./dist/browser.js",
+		"import": "./dist/index.js"
 	},
 	"scripts": {
 		"build": "./build.sh",
