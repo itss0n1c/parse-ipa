@@ -10,9 +10,9 @@
 		"rootDir": "lib/",
 		"target": "ESNext",
 		"esModuleInterop": true,
-		"strict": true,
+		"emitDeclarationOnly": true,
 		"skipLibCheck": true,
-		"emitDeclarationOnly": true
+		"strict": true
 	},
-	"exclude": ["dist/", "node_modules", "**/node_modules/*", "lib/**/*.test.ts"]
+	"exclude": ["dist/", "node_modules", "**/node_modules/*"]
 }
