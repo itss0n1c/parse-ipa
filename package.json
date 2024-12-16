@@ -1,6 +1,6 @@
 {
 	"name": "parse-ipa",
-	"version": "2.2.1",
+	"version": "2.2.2",
 	"license": "MIT",
 	"type": "module",
 	"files": ["dist"],
