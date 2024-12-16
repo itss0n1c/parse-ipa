@@ -18,7 +18,7 @@ function test_ipa(ipa: IPA) {
 }
 
 async function get_file() {
-	const file = Bun.file(join(process.cwd(), 'test/test.ipa'));
+	const file = Bun.file(join(process.cwd(), 'test/Enmity 2.ipa'));
 	if (!(await file.exists()))
 		fetch('https://github.com/Aidoku/Aidoku/releases/download/v0.6.10/Aidoku.ipa').then((r) => Bun.write(file, r));
 	return file;

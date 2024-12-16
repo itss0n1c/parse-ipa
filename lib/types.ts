@@ -11,7 +11,7 @@ export type Provision = Omit<_ParsedProvision, 'DeveloperCertificates' | 'DER-En
 	Record<'DeveloperCertificates', string[]> &
 	Record<'DER-Encoded-Profile', string>;
 
-export type IPAOriginType = 'url' | 'file' | 'blob';
+export type IPAOriginType = 'url' | 'blob';
 export interface IPAOrigin {
 	type: IPAOriginType;
 	value: string;

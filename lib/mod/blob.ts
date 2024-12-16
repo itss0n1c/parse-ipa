@@ -82,8 +82,8 @@ export async function _parse_blob(blob: File | BunFile): Promise<RawIPA> {
 	}));
 
 	const info = await _get_info(entries, zip);
-	const icon = await _get_icon(info, entries, zip);
-	const provision = await _get_provision(entries, zip);
+	const icon = await _try_prom(_get_icon(info, entries, zip));
+	const provision = await _try_prom(_get_provision(entries, zip));
 
 	const end = performance.now();
 

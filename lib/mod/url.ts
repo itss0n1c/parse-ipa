@@ -95,7 +95,7 @@ export async function _parse_url(url: string): Promise<RawIPA> {
 	const arr = [...zip.files.values()];
 	const info = await _get_info(zip);
 	const icon = await _try_prom(_get_icon(info, zip));
-	const provision = await _get_provision(zip);
+	const provision = await _try_prom(_get_provision(zip));
 	const end = performance.now();
 
 	return {
