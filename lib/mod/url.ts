@@ -2,7 +2,7 @@ import { parse } from '@plist/plist';
 import { PartialZip } from 'partialzip';
 import { _parse_provision, _try_prom } from '../util';
 import { _icon_fix } from './cgbi';
-import { _filter_icons, basename, type RawInfo, type RawIPA } from './util';
+import { _filter_icons, basename, buf_to_arraybuffer, type RawInfo, type RawIPA } from './util';
 
 class PartialZipWithSize extends PartialZip {
 	file_size!: number;
@@ -41,15 +41,6 @@ function _get_file(match: string, zip: PartialZipWithSize) {
 	return matching;
 }
 
-function buf_to_arraybuffer(buf: Buffer) {
-	const arrayBuffer = new ArrayBuffer(buf.length);
-	const view = new Uint8Array(arrayBuffer);
-	for (let i = 0; i < buf.length; i++) {
-		view[i] = buf[i];
-	}
-	return arrayBuffer;
-}
-
 async function _get_info(zip: PartialZipWithSize) {
 	const file = _get_file('.app/Info.plist', zip);
 	const buf = await zip.get(file);
@@ -65,6 +56,7 @@ async function _get_icon(info: RawInfo, zip: PartialZipWithSize) {
 	}
 
 	icon_arr = _filter_icons(info, icon_arr);
+	console.log(icon_arr);
 
 	const entries: CentralDirectoryEntry[] = [];
 	for (const i of icon_arr) {
@@ -92,7 +84,6 @@ export async function _parse_url(url: string): Promise<RawIPA> {
 	const start = performance.now();
 	const zip = new PartialZipWithSize(url);
 	await zip.init();
-	const arr = [...zip.files.values()];
 	const info = await _get_info(zip);
 	const icon = await _try_prom(_get_icon(info, zip));
 	const provision = await _try_prom(_get_provision(zip));

@@ -61,3 +61,21 @@ export function join(...args: string[]): string {
 	}
 	return path;
 }
+
+export function is_url(url: string) {
+	try {
+		new URL(url);
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+export function buf_to_arraybuffer(buf: Buffer) {
+	const arrayBuffer = new ArrayBuffer(buf.length);
+	const view = new Uint8Array(arrayBuffer);
+	for (let i = 0; i < buf.length; i++) {
+		view[i] = buf[i];
+	}
+	return arrayBuffer;
+}

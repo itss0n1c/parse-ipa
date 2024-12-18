@@ -6,6 +6,7 @@ function test_ipa(ipa: IPA) {
 	console.log({
 		name: ipa.name,
 		verison: ipa.version,
+		size: ipa.size,
 		icon: ipa.icon?.length,
 		build: ipa.build,
 		bundle_id: ipa.bundle_id,
@@ -18,7 +19,7 @@ function test_ipa(ipa: IPA) {
 }
 
 async function get_file() {
-	const file = Bun.file(join(process.cwd(), 'test/Enmity 2.ipa'));
+	const file = Bun.file(join(process.cwd(), 'test/test.ipa'));
 	if (!(await file.exists()))
 		fetch('https://github.com/Aidoku/Aidoku/releases/download/v0.6.10/Aidoku.ipa').then((r) => Bun.write(file, r));
 	return file;
@@ -26,6 +27,13 @@ async function get_file() {
 
 test('by url', async () => {
 	const ipa = await parse_ipa('https://github.com/Aidoku/Aidoku/releases/download/v0.6.10/Aidoku.ipa');
+	test_ipa(ipa);
+});
+
+test('by file', async () => {
+	const file = await get_file();
+	if (!file.name) return;
+	const ipa = await parse_ipa(file.name);
 	test_ipa(ipa);
 });
 

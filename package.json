@@ -1,6 +1,6 @@
 {
 	"name": "parse-ipa",
-	"version": "2.2.2",
+	"version": "2.3.0",
 	"license": "MIT",
 	"type": "module",
 	"files": ["dist"],
@@ -22,9 +22,10 @@
 		"nodemon": "3.1.9"
 	},
 	"dependencies": {
+		"@plist/plist": "1.0.0",
 		"cgbi-to-png": "1.0.7",
 		"jszip": "^3.10.1",
-		"partialzip": "3.1.1",
-		"@plist/plist": "1.0.0"
+		"node-stream-zip": "^1.15.0",
+		"partialzip": "3.1.1"
 	}
 }
