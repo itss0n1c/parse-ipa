@@ -1,9 +1,9 @@
 import { parse } from '@plist/plist';
 import StreamZip, { type StreamZipAsync, type ZipEntry } from 'node-stream-zip';
 import { stat } from 'node:fs/promises';
-import { _parse_provision, _try_prom } from '../util';
+import { _try_prom, basename, buf_to_arraybuffer, IPAError } from '../util';
 import { _icon_fix } from './cgbi';
-import { _filter_icons, _icon_clean_name, basename, buf_to_arraybuffer, type RawInfo, type RawIPA } from './util';
+import { _filter_icons, _icon_clean_name, _parse_provision, type RawInfo, type RawIPA } from './util';
 
 async function _get_file(match: string, entries: ZipEntry[]) {
 	let matching: ZipEntry | undefined;
@@ -12,7 +12,7 @@ async function _get_file(match: string, entries: ZipEntry[]) {
 		matching = entry;
 	}
 	const base = basename(match);
-	if (!matching) throw new Error(`${base} not found`);
+	if (!matching) throw new IPAError(`${base} not found`);
 	return matching;
 }
 
@@ -49,7 +49,7 @@ async function _get_icon(info: RawInfo, _entries: ZipEntry[], zip: StreamZipAsyn
 	entries.sort(_icon_sort);
 
 	const icon = entries[0];
-	if (!icon) throw new Error('No icon found');
+	if (!icon) throw new IPAError('No icon found');
 
 	const file = await zip.entryData(icon);
 	return _icon_fix(Uint8Array.from(file));

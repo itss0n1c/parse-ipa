@@ -1,8 +1,8 @@
 import { parse } from '@plist/plist';
 import { PartialZip } from 'partialzip';
-import { _parse_provision, _try_prom } from '../util';
+import { _try_prom, basename, buf_to_arraybuffer, IPAError } from '../util';
 import { _icon_fix } from './cgbi';
-import { _filter_icons, basename, buf_to_arraybuffer, type RawInfo, type RawIPA } from './util';
+import { _filter_icons, _parse_provision, type RawInfo, type RawIPA } from './util';
 
 class PartialZipWithSize extends PartialZip {
 	file_size!: number;
@@ -12,6 +12,8 @@ class PartialZipWithSize extends PartialZip {
 		this.file_size = this.size;
 	}
 }
+
+type CentralDirectoryEntry = ReturnType<PartialZip['files']['get']> & {};
 
 function _icon_clean_name(str: string): [number, number] {
 	const base_name = basename(str).replace('AppIcon', '').replace('.png', '').replace('~ipad', '');
@@ -28,8 +30,6 @@ function _icon_sort(a: CentralDirectoryEntry, b: CentralDirectoryEntry) {
 	return b_base - a_base;
 }
 
-type CentralDirectoryEntry = Parameters<Parameters<PartialZip['files']['forEach']>[0]>[0];
-
 function _get_file(match: string, zip: PartialZipWithSize) {
 	let matching: CentralDirectoryEntry | undefined;
 	for (const [k] of zip.files) {
@@ -37,7 +37,7 @@ function _get_file(match: string, zip: PartialZipWithSize) {
 		matching = zip.files.get(k);
 	}
 	const base = basename(match);
-	if (!matching) throw new Error(`${base} not found`);
+	if (!matching) throw new IPAError(`${base} not found`);
 	return matching;
 }
 
@@ -56,7 +56,6 @@ async function _get_icon(info: RawInfo, zip: PartialZipWithSize) {
 	}
 
 	icon_arr = _filter_icons(info, icon_arr);
-	console.log(icon_arr);
 
 	const entries: CentralDirectoryEntry[] = [];
 	for (const i of icon_arr) {
@@ -68,7 +67,7 @@ async function _get_icon(info: RawInfo, zip: PartialZipWithSize) {
 	entries.sort(_icon_sort);
 
 	const icon = entries[0];
-	if (!icon) throw new Error('No icon found');
+	if (!icon) throw new IPAError('No icon found');
 
 	const file = await zip.get(icon);
 	return _icon_fix(Uint8Array.from(file));

@@ -1,0 +1,25 @@
+{
+	"entryPoints": ["lib/index.ts"],
+	"out": "docs",
+	"plugin": ["typedoc-github-theme"],
+	"excludeExternals": true,
+	"externalSymbolLinkMappings": {
+		"bun-types": {
+			"*": "https://bun.sh/docs"
+		},
+		"@types/node": {
+			"*": "https://bun.sh/docs/runtime/nodejs-apis"
+		},
+		"typescript": {
+			"Promise": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise",
+			"Error": "https://developer.mozilla.org/en-US/dozcs/Web/JavaScript/Reference/Global_Objects/Error",
+			"Date": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date",
+			"Record": "https://www.typescriptlang.org/docs/handbook/utility-types.html#recordkeys-type"
+		}
+	},
+	"navigationLinks": {
+		"GitHub": "https://github.com/itss0n1c/parse-ipa",
+		"S0n1c": "https://s0n1c.ca"
+	},
+	"sort": ["documents-first", "kind"]
+}

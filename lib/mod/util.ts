@@ -1,15 +1,57 @@
-import type { _ParsedProvision, IPAOrigin } from '../types';
+import { parse } from '@plist/plist';
+import type { IPAOrigin } from '../types';
+import { _substring, basename } from '../util';
+
+export interface RawProvision extends Record<string, unknown> {
+	AppIDName: string;
+	ApplicationIdentifierPrefix: string[];
+	CreationDate: Date;
+	ExpirationDate: Date;
+	IsXcodeManaged: false;
+	Name: string;
+	Platform: string;
+	ProvisionedDevices: string[];
+	TeamIdentifier: string[];
+	TeamName: string;
+	TimeToLive: number;
+	UUID: string;
+	Version: number;
+	DeveloperCertificates: ArrayBuffer[];
+	'DER-Encoded-Profile': ArrayBuffer;
+	Entitlements: Record<string, unknown>;
+}
+
+export interface Provision {
+	AppIDName: string;
+	ApplicationIdentifierPrefix: string[];
+	CreationDate: Date;
+	ExpirationDate: Date;
+	IsXcodeManaged: false;
+	Name: string;
+	Platform: string;
+	ProvisionedDevices: string[];
+	TeamIdentifier: string[];
+	TeamName: string;
+	TimeToLive: number;
+	UUID: string;
+	Version: number;
+	DeveloperCertificates: string[];
+	'DER-Encoded-Profile': string;
+	Entitlements: Record<string, unknown>;
+}
 
 export interface RawIPA {
 	info: Record<string, string>;
 	size: number;
 	icon?: Uint8Array;
 	duration: number;
-	provision?: _ParsedProvision;
+	provision?: RawProvision;
 	origin: IPAOrigin;
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+export const _parse_provision = (mp: string) => parse(_substring(mp, '<plist', '</plist>')) as RawProvision;
+
+// biome-ignore lint/suspicious/noExplicitAny: value can be any type
 export type RawInfo = Record<string, any>;
 
 export function _icon_clean_name(str: string): [number, number] {
@@ -39,43 +81,4 @@ export function _filter_icons(info: RawInfo, _icon_arr: string[]) {
 		else icon_arr = info.CFBundleIconFiles;
 	}
 	return icon_arr;
-}
-
-export function basename(path: string, suffix?: string): string {
-	const p = path.split('/').pop();
-	if (!p) return '';
-	return suffix && p.endsWith(suffix) ? p.slice(0, -suffix.length) : p;
-}
-
-export const isAbsolute = (path: string): boolean => path.startsWith('/');
-
-export function join(...args: string[]): string {
-	if (args.length === 0) return '';
-	if (args.length === 1) return args[0];
-	let path = '';
-	for (const arg of args) {
-		if (arg.startsWith('/')) {
-			if (path.endsWith('/')) path += arg.slice(1);
-			else path += arg;
-		} else path += `/${arg}`;
-	}
-	return path;
-}
-
-export function is_url(url: string) {
-	try {
-		new URL(url);
-		return true;
-	} catch {
-		return false;
-	}
-}
-
-export function buf_to_arraybuffer(buf: Buffer) {
-	const arrayBuffer = new ArrayBuffer(buf.length);
-	const view = new Uint8Array(arrayBuffer);
-	for (let i = 0; i < buf.length; i++) {
-		view[i] = buf[i];
-	}
-	return arrayBuffer;
 }

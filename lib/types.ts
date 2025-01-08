@@ -1,44 +1,50 @@
-export type _ParsedProvision = Record<'AppIDName' | 'Name' | 'TeamName' | 'UUID', string> &
-	Record<'ApplicationIdentifierPrefix' | 'Platform' | 'ProvisionedDevices' | 'TeamIdentifier', string[]> &
-	Record<'CreationDate' | 'ExpirationDate', Date> &
-	Record<'IsXcodeManaged', false> &
-	Record<'DeveloperCertificates', ArrayBuffer[]> &
-	Record<'DER-Encoded-Profile', ArrayBuffer> &
-	Record<'Entitlements', Record<string, unknown>> &
-	Record<'TimeToLive' | 'Version', number>;
+import type { BunFile } from 'bun';
+import type { Provision } from './mod';
 
-export type Provision = Omit<_ParsedProvision, 'DeveloperCertificates' | 'DER-Encoded-Profile'> &
-	Record<'DeveloperCertificates', string[]> &
-	Record<'DER-Encoded-Profile', string>;
-
+export type IPAInput = string | File | BunFile;
 export type IPAOriginType = 'url' | 'file' | 'blob';
 export interface IPAOrigin {
 	type: IPAOriginType;
 	value: string;
 }
 export interface IPA {
-	/** bundle id */
+	/**
+	 * The app bundle identifier
+	 * @example "com.apple.mobilesafari"
+	 */
 	bundle_id: string;
-	/** app name */
+	/**
+	 * The app name
+	 * @example "Safari"
+	 */
 	name: string;
-	/** version number */
+	/**
+	 * The app version
+	 * @example "15.0"
+	 */
 	version: string;
-	/** build number */
+	/**
+	 * The app build number
+	 * @example "19A339"
+	 */
 	build: string;
-	/** byte size */
+	/**
+	 * The app icon size
+	 * @example 17692
+	 */
 	size: number;
 	/** Base64 encoded PNG */
 	icon: string | null;
 	/** signing information, if available */
 	provision: Provision | null;
 	parser_info: {
-		/** when the parser finished */
+		/** the epoch time when the parser completed */
 		time: number;
-		/* parser version */
+		/** `parse-ipa` version */
 		version: string;
 		/** how long it took to parse */
 		duration: number;
-		/** origin */
+		/** origin of the IPA */
 		origin: IPAOrigin;
 	};
 }

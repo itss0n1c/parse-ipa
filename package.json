@@ -1,6 +1,7 @@
 {
 	"name": "parse-ipa",
-	"version": "2.3.0",
+	"version": "2.4.0",
+	"description": "Gather information about an IPA file.",
 	"license": "MIT",
 	"type": "module",
 	"files": ["dist"],
@@ -12,20 +13,30 @@
 		"import": "./dist/index.js"
 	},
 	"scripts": {
-		"build": "./build.sh",
-		"dev": "nodemon -w lib/ -e ts --exec bun test"
+		"dev": "nodemon -w lib/ -e ts --exec bun test",
+		"build:lib": "bun run build.ts",
+		"build:docs": "typedoc --options typedoc.json",
+		"build": "bun build:lib && bun build:docs"
 	},
 	"devDependencies": {
-		"typescript": "5.7.2",
 		"@biomejs/biome": "1.9.4",
-		"@types/bun": "latest",
-		"nodemon": "3.1.9"
+		"@types/bun": "1.1.14",
+		"nodemon": "3.1.9",
+		"typedoc-github-theme": "0.2.1"
 	},
 	"dependencies": {
 		"@plist/plist": "1.0.0",
 		"cgbi-to-png": "1.0.7",
-		"jszip": "^3.10.1",
-		"node-stream-zip": "^1.15.0",
+		"jszip": "3.10.1",
+		"node-stream-zip": "1.15.0",
 		"partialzip": "3.1.1"
-	}
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+ssh://git@github.com/itss0n1c/parse-ipa.git"
+	},
+	"bugs": {
+		"url": "https://github.com/itss0n1c/parse-ipa/issues"
+	},
+	"homepage": "https://s0n1c.ca/parse-ipa"
 }

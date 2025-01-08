@@ -1,8 +1,8 @@
 import { parse } from '@plist/plist';
 import type { BunFile } from 'bun';
 import JSZip from 'jszip';
-import { _parse_provision, _try_prom } from '../util';
-import { _filter_icons, _icon_clean_name, basename, type RawInfo, type RawIPA } from './util';
+import { _try_prom, basename, IPAError } from '../util';
+import { _filter_icons, _icon_clean_name, _parse_provision, type RawInfo, type RawIPA } from './util';
 
 interface ZipEntry {
 	path: string;
@@ -16,14 +16,14 @@ async function _get_file(match: string, entries: ZipEntry[]) {
 		matching = k;
 	}
 	const base = basename(match);
-	if (!matching) throw new Error(`${base} not found`);
+	if (!matching) throw new IPAError(`${base} not found`);
 	return matching;
 }
 
 async function _get_info(entries: ZipEntry[], zip: JSZip) {
 	const file = await _get_file('.app/Info.plist', entries);
 	const str = await zip.file(file.path)?.async('arraybuffer');
-	if (!str) throw new Error('Info.plist not found');
+	if (!str) throw new IPAError('Info.plist not found');
 	return parse(str) as RawInfo;
 }
 
@@ -54,7 +54,7 @@ async function _get_icon(info: RawInfo, _entries: ZipEntry[], zip: JSZip) {
 	entries.sort(_icon_sort);
 
 	const icon = entries[0];
-	if (!icon) throw new Error('No icon found');
+	if (!icon) throw new IPAError('No icon found');
 
 	return icon.file.async('uint8array');
 }
@@ -62,14 +62,14 @@ async function _get_icon(info: RawInfo, _entries: ZipEntry[], zip: JSZip) {
 async function _get_provision(entries: ZipEntry[], zip: JSZip) {
 	const file = await _get_file('.app/embedded.mobileprovision', entries);
 	const str = await zip.file(file.path)?.async('string');
-	if (!str) throw new Error('embedded.mobileprovision not found');
+	if (!str) throw new IPAError('embedded.mobileprovision not found');
 	return _parse_provision(str);
 }
 
 const create_url = (blob: Blob) => URL.createObjectURL(blob);
 
 export async function _parse_blob(blob: File | BunFile): Promise<RawIPA> {
-	const origin_val = !(blob instanceof File) ? (blob.name ?? create_url(blob)) : create_url(blob);
+	const origin_val = 'lastModified' in blob ? (blob.name ?? create_url(blob)) : create_url(blob);
 
 	const start = performance.now();
 	const size = blob.size;
