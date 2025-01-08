@@ -5,6 +5,8 @@
 <a href="https://www.npmjs.com/package/parse-ipa"><img src="https://img.shields.io/npm/v/parse-ipa?maxAge=3600" alt="npm version" /></a>
 <a href="https://www.npmjs.com/package/parse-ipa"><img src="https://img.shields.io/npm/dt/parse-ipa.svg?maxAge=3600" alt="npm downloads" /></a>
 
+### Documentation live at https://s0n1c.ca/parse-ipa
+
 
 ## Installation
 
