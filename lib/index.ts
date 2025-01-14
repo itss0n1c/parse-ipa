@@ -3,7 +3,7 @@ import { _parse_blob } from './mod/blob';
 import type { IPA, IPAInput } from './types';
 import { format_ipa_info, is_url } from './util';
 
-export type { Provision } from './mod';
+export { parse_ipa_schema_provision, type Provision } from './mod';
 export * from './types';
 export { IPAError } from './util';
 

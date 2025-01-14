@@ -35,7 +35,13 @@ export interface IPA {
 	size: number;
 	/** Base64 encoded PNG */
 	icon: string | null;
-	/** signing information, if available */
+	/**
+	 * signing information, if available.
+	 *
+	 * View the {@link Provision} interface for more information.
+	 *
+	 * @see {@link Provision}
+	 */
 	provision: Provision | null;
 	parser_info: {
 		/** the epoch time when the parser completed */

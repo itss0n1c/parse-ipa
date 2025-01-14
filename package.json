@@ -1,6 +1,6 @@
 {
 	"name": "parse-ipa",
-	"version": "2.4.2",
+	"version": "2.4.3",
 	"description": "Gather information about an IPA file.",
 	"license": "GPL-3.0-only",
 	"type": "module",
@@ -27,6 +27,7 @@
 	"dependencies": {
 		"@plist/plist": "1.0.0",
 		"cgbi-to-png": "1.0.7",
+		"elysia": "^1.2.10",
 		"jszip": "3.10.1",
 		"node-stream-zip": "1.15.0",
 		"partialzip": "3.1.1"
