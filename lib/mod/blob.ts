@@ -1,5 +1,6 @@
 import { parse } from '@plist/plist';
 import type { BunFile } from 'bun';
+import { decgbi } from 'decgbi';
 import JSZip from 'jszip';
 import { _try_prom, basename, IPAError } from '../util';
 import { _filter_icons, _icon_clean_name, _parse_provision, type RawInfo, type RawIPA } from './util';
@@ -35,7 +36,7 @@ function _icon_sort(a: ZipEntry, b: ZipEntry) {
 	return b_base - a_base;
 }
 
-async function _get_icon(info: RawInfo, _entries: ZipEntry[], zip: JSZip) {
+async function _get_icon(info: RawInfo, _entries: ZipEntry[], _zipp: JSZip) {
 	let icon_arr: string[] = [];
 	for (const entry of _entries) {
 		if (!entry.path.includes('AppIcon')) continue;
@@ -50,13 +51,13 @@ async function _get_icon(info: RawInfo, _entries: ZipEntry[], zip: JSZip) {
 		if (!file) continue;
 		entries.push(file);
 	}
-
 	entries.sort(_icon_sort);
 
 	const icon = entries[0];
 	if (!icon) throw new IPAError('No icon found');
 
-	return icon.file.async('uint8array');
+	const arr = await icon.file.async('uint8array');
+	return decgbi(arr);
 }
 
 async function _get_provision(entries: ZipEntry[], zip: JSZip) {

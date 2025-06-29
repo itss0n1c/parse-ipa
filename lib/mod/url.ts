@@ -1,7 +1,7 @@
 import { parse } from '@plist/plist';
+import { decgbi } from 'decgbi';
 import { PartialZip } from 'partialzip';
 import { _try_prom, basename, buf_to_arraybuffer, IPAError } from '../util';
-import { _icon_fix } from './cgbi';
 import { _filter_icons, _parse_provision, type RawInfo, type RawIPA } from './util';
 
 class PartialZipWithSize extends PartialZip {
@@ -70,7 +70,7 @@ async function _get_icon(info: RawInfo, zip: PartialZipWithSize) {
 	if (!icon) throw new IPAError('No icon found');
 
 	const file = await zip.get(icon);
-	return _icon_fix(Uint8Array.from(file));
+	return decgbi(Uint8Array.from(file));
 }
 
 async function _get_provision(zip: PartialZipWithSize) {

@@ -3,6 +3,7 @@
 	"out": "docs",
 	"plugin": ["typedoc-github-theme"],
 	"excludeExternals": true,
+	"logLevel": "Verbose",
 	"externalSymbolLinkMappings": {
 		"bun-types": {
 			"*": "https://bun.sh/docs"

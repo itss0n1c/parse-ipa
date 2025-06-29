@@ -2,7 +2,7 @@
 	"compilerOptions": {
 		"declaration": true,
 		"forceConsistentCasingInFileNames": true,
-		"lib": ["ESNext"],
+		"lib": ["ESNext", "DOM"],
 		"types": ["bun"],
 		"module": "ESNext",
 		"moduleResolution": "Bundler",

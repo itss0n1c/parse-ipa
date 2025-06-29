@@ -30,7 +30,10 @@ export function join(...args: string[]): string {
 	return path;
 }
 
+const is_windows_path = (path: string) => /^[a-zA-Z]:[\\/]/.test(path);
+
 export function is_url(url: string) {
+	if (is_windows_path(url)) return false;
 	try {
 		new URL(url);
 		return true;

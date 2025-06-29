@@ -1,8 +1,8 @@
 import { parse } from '@plist/plist';
+import { decgbi } from 'decgbi';
 import StreamZip, { type StreamZipAsync, type ZipEntry } from 'node-stream-zip';
 import { stat } from 'node:fs/promises';
 import { _try_prom, basename, buf_to_arraybuffer, IPAError } from '../util';
-import { _icon_fix } from './cgbi';
 import { _filter_icons, _icon_clean_name, _parse_provision, type RawInfo, type RawIPA } from './util';
 
 async function _get_file(match: string, entries: ZipEntry[]) {
@@ -52,7 +52,7 @@ async function _get_icon(info: RawInfo, _entries: ZipEntry[], zip: StreamZipAsyn
 	if (!icon) throw new IPAError('No icon found');
 
 	const file = await zip.entryData(icon);
-	return _icon_fix(Uint8Array.from(file));
+	return decgbi(Uint8Array.from(file));
 }
 
 async function _get_provision(entries: ZipEntry[], zip: StreamZipAsync) {
