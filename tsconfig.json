@@ -1,6 +1,6 @@
 {
 	"compilerOptions": {
-		"declaration": true,
+		"noEmit": true,
 		"forceConsistentCasingInFileNames": true,
 		"lib": ["ESNext", "DOM"],
 		"types": ["bun"],
@@ -12,8 +12,7 @@
 		"target": "ESNext",
 		"esModuleInterop": true,
 		"strict": true,
-		"skipLibCheck": true,
-		"emitDeclarationOnly": true
+		"skipLibCheck": true
 	},
-	"exclude": ["build.ts", "dist/", "node_modules"]
+	"exclude": ["tsdown.config.ts", "dist/", "node_modules"]
 }

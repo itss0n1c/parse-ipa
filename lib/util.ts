@@ -1,6 +1,6 @@
 import packageInfo from '../package.json';
-import type { RawIPA } from './mod';
-import type { IPA } from './types';
+import type { RawIPA } from './raw';
+import type { IPA, IPAInput, IPAOrigin, IPAOriginType } from './types';
 
 export class IPAError extends Error {
 	constructor(message: string) {
@@ -9,46 +9,21 @@ export class IPAError extends Error {
 	}
 }
 
-export function basename(path: string, suffix?: string): string {
+export function _basename(path: string, suffix?: string): string {
 	const p = path.split('/').pop();
 	if (!p) return '';
 	return suffix && p.endsWith(suffix) ? p.slice(0, -suffix.length) : p;
 }
 
-export const isAbsolute = (path: string): boolean => path.startsWith('/');
-
-export function join(...args: string[]): string {
-	if (args.length === 0) return '';
-	if (args.length === 1) return args[0];
-	let path = '';
-	for (const arg of args) {
-		if (arg.startsWith('/')) {
-			if (path.endsWith('/')) path += arg.slice(1);
-			else path += arg;
-		} else path += `/${arg}`;
-	}
-	return path;
-}
-
-const is_windows_path = (path: string) => /^[a-zA-Z]:[\\/]/.test(path);
-
-export function is_url(url: string) {
-	if (is_windows_path(url)) return false;
+const _is_windows_path = (path: string) => /^[a-zA-Z]:[\\/]/.test(path);
+export function _is_url(url: string) {
+	if (_is_windows_path(url)) return false;
 	try {
 		new URL(url);
 		return true;
 	} catch {
 		return false;
 	}
-}
-
-export function buf_to_arraybuffer(buf: Buffer) {
-	const arrayBuffer = new ArrayBuffer(buf.length);
-	const view = new Uint8Array(arrayBuffer);
-	for (let i = 0; i < buf.length; i++) {
-		view[i] = buf[i];
-	}
-	return arrayBuffer;
 }
 
 export const _substring = (str: string, start: string, end: string) =>
@@ -65,7 +40,18 @@ export async function _try_prom<T>(prom: Promise<T> | T, logging = false): Promi
 	return res;
 }
 
-export const format_ipa_info = (raw: RawIPA): IPA => ({
+const _blob_url = (blob: Blob) => URL.createObjectURL(blob);
+const _format_origin = (type: IPAOriginType, value: string): IPAOrigin => ({ type, value });
+export function _get_origin(input: IPAInput): IPAOrigin {
+	if (typeof input === 'string') {
+		if (_is_url(input)) return _format_origin('url', input);
+		return _format_origin('file', input);
+	}
+	const value = 'lastModified' in input ? (input.name ?? _blob_url(input)) : _blob_url(input);
+	return _format_origin('blob', value);
+}
+
+export const _format_ipa_info = (raw: RawIPA): IPA => ({
 	bundle_id: raw.info.CFBundleIdentifier,
 	name: raw.info.CFBundleName,
 	version: raw.info.CFBundleShortVersionString,

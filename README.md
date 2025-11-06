@@ -23,11 +23,11 @@
 import { parse_ipa } from "parse-ipa";
 
 let ipa = await parse_ipa(
-  "https://github.com/rileytestut/Delta/releases/download/v1.6/Delta_1_6.ipa"
+  "https://github.com/NeoFreeBird/app/releases/download/2.2/NeoFreeBird-2.2-Twitter-11.35.ipa"
 );
 
-console.log(ipa.name); // Delta
-console.log(ipa.version); // 1.6
-console.log(ipa.build); // 102
-console.log(ipa.bundle_id); // com.rileytestut.Delta
+console.log(ipa.name); // Twitter
+console.log(ipa.version); // 11.35
+console.log(ipa.build); // 12
+console.log(ipa.bundle_id); // com.atebits.Tweetie2
 ```

@@ -1,9 +1,8 @@
-import { _parse_file, _parse_url, type RawIPA } from './mod';
-import { _parse_blob } from './mod/blob';
-import type { IPA, IPAInput } from './types';
-import { format_ipa_info, is_url } from './util';
+import { HTTPRangeReader, unzip, type ZipInfo } from 'unzipit';
+import { _parse_raw } from './raw';
+import type { IPA, IPAInput, } from './types';
+import { _format_ipa_info, _get_origin, _is_url } from './util';
 
-export { parse_ipa_schema_provision, type Provision } from './mod';
 export * from './types';
 export { IPAError } from './util';
 
@@ -14,11 +13,29 @@ export { IPAError } from './util';
  * @throws {@link IPAError}
  */
 export async function parse_ipa(input: IPAInput): Promise<IPA> {
-	let raw: RawIPA;
-	if (typeof input === 'string') {
-		if (is_url(input)) raw = await _parse_url(input);
-		else raw = await _parse_file(input);
-	} else raw = await _parse_blob(input);
+	const zip_data = await _get_zip(input);
+	const raw = await _parse_raw(zip_data);
+	return _format_ipa_info(raw);
+}
 
-	return format_ipa_info(raw);
+async function _get_zip(input: IPAInput) {
+	let zip: ZipInfo | undefined;
+	let size = 0;
+	if (typeof input === 'string') {
+		if (_is_url(input)) {
+			const reader = new HTTPRangeReader(input);
+			size = await reader.getLength();
+			zip = await unzip(reader);
+		} else {
+			const file = Bun.file(input);
+			size = file.size;
+			zip = await unzip(file);
+		}
+	} else {
+		size = input.size;
+		zip = await unzip(input);
+	}
+	const origin = _get_origin(input);
+
+	return { zip, size, origin };
 }

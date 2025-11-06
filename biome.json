@@ -1,8 +1,8 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.0.6/schema.json",
-	"assist": { "actions": { "source": { "organizeImports": "off" } } },
+	"$schema": "https://biomejs.dev/schemas/2.3.4/schema.json",
+	"assist": { "actions": { "source": { "organizeImports": "on" } } },
 	"files": {
-		"includes": ["**", "!**/dist/**/*", "!**/node_modules/**/*", "!**/docs/**/*"]
+		"includes": ["**", "!!dist", "!!docs", "!!test", "!!**/*.js", "!!node_modules"]
 	},
 	"formatter": {
 		"enabled": true,
@@ -19,20 +19,16 @@
 		"enabled": true,
 		"rules": {
 			"recommended": true,
-			"style": {
-				"noParameterAssign": "error",
-				"useAsConstAssertion": "error",
-				"useDefaultParameterLast": "error",
-				"useEnumInitializers": "error",
-				"useSelfClosingElements": "error",
-				"useSingleVarDeclarator": "error",
-				"noUnusedTemplateLiteral": "error",
-				"useNumberNamespace": "error",
-				"noInferrableTypes": "error",
-				"noUselessElse": "error"
-			},
 			"suspicious": {
 				"noAssignInExpressions": "off"
+			},
+			"correctness": {
+				"noUnusedImports": "error",
+				"noUnusedVariables": "error"
+			},
+			"style": {
+				"noParameterAssign": "off",
+				"useExportType": "error"
 			}
 		}
 	}
