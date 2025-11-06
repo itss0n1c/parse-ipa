@@ -1,6 +1,6 @@
 {
 	"name": "parse-ipa",
-	"version": "2.6.0",
+	"version": "2.6.1",
 	"description": "Gather information about an IPA file.",
 	"license": "GPL-3.0-only",
 	"type": "module",

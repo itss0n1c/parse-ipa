@@ -17,7 +17,7 @@
 ## Usage
 `parse-ipa` is available via server-side (Bun & Node.js), as well as in browser.
 
-<sub>**Note**: Browser only supports inputting a `Blob` object.</sub>
+<sub>**Note**: Browser does not support file system paths.</sub>
 
 ```ts
 import { parse_ipa } from "parse-ipa";
