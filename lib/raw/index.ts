@@ -40,7 +40,7 @@ async function _get_file(match: string, entries: ZipEntry[]) {
 
 async function _get_info(entries: ZipEntry[]) {
 	const file = await _get_file('.app/Info.plist', entries);
-	const str = await file.text();
+	const str = await file.arrayBuffer();
 	if (!str) throw new IPAError('Info.plist not found');
 	return parse(str) as RawInfo;
 }

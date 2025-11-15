@@ -1,6 +1,6 @@
 import { HTTPRangeReader, unzip, type ZipInfo } from 'unzipit';
 import { _parse_raw } from './raw';
-import type { IPA, IPAInput, } from './types';
+import type { IPA, IPAInput } from './types';
 import { _format_ipa_info, _get_origin, _is_url } from './util';
 
 export * from './types';
