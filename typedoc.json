@@ -15,7 +15,11 @@
 			"Promise": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise",
 			"Error": "https://developer.mozilla.org/en-US/dozcs/Web/JavaScript/Reference/Global_Objects/Error",
 			"Date": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date",
-			"Record": "https://www.typescriptlang.org/docs/handbook/utility-types.html#recordkeys-type"
+			"Record": "https://www.typescriptlang.org/docs/handbook/utility-types.html#recordkeys-type",
+			"File": "https://developer.mozilla.org/en-US/docs/Web/API/File"
+		},
+		"arktype": {
+			"*": "https://arktype.io/docs/intro/your-first-type"
 		}
 	},
 	"navigationLinks": {

@@ -1,6 +1,6 @@
 import packageInfo from '../package.json';
 import type { RawIPA } from './raw';
-import type { IPA, IPAInput, IPAOrigin, IPAOriginType } from './types';
+import type { IPA, IPAInput, IPAOrigin } from './types';
 
 export class IPAError extends Error {
 	constructor(message: string) {
@@ -41,7 +41,7 @@ export async function _try_prom<T>(prom: Promise<T> | T, logging = false): Promi
 }
 
 const _blob_url = (blob: Blob) => URL.createObjectURL(blob);
-const _format_origin = (type: IPAOriginType, value: string): IPAOrigin => ({ type, value });
+const _format_origin = (type: IPAOrigin['type'], value: string): IPAOrigin => ({ type, value });
 export function _get_origin(input: IPAInput): IPAOrigin {
 	if (typeof input === 'string') {
 		if (_is_url(input)) return _format_origin('url', input);

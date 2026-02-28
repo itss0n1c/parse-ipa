@@ -1,86 +1,120 @@
-import * as t from '@sinclair/typebox';
-import type { BunFile } from 'bun';
+import { type } from 'arktype';
 
 /**
- * Schema for provision object.
- *
- * Useful for using with TypeBox (in something like Elysia).
+ * Schema for provision object using arktype.
  */
-export const parse_ipa_schema_provision = t.Object({
-	AppIDName: t.String(),
-	ApplicationIdentifierPrefix: t.Array(t.String()),
-	CreationDate: t.Date(),
-	ExpirationDate: t.Date(),
-	IsXcodeManaged: t.Boolean(),
-	Name: t.String(),
-	Platform: t.Array(t.String()),
-	ProvisionedDevices: t.Array(t.String()),
-	TeamIdentifier: t.Array(t.String()),
-	TeamName: t.String(),
-	TimeToLive: t.Number(),
-	UUID: t.String(),
-	Version: t.Number(),
-	DeveloperCertificates: t.Array(t.String()),
-	'DER-Encoded-Profile': t.String(),
-	Entitlements: t.Record(t.String(), t.Unknown()),
+export const schema_provision = type({
+	/**
+	 * The app ID name
+	 */
+	AppIDName: 'string',
+	/**
+	 * The application identifier prefix
+	 */
+	ApplicationIdentifierPrefix: type.string.array(),
+	/**
+	 * The creation date
+	 */
+	CreationDate: 'Date',
+	/**
+	 * The expiration date
+	 */
+	ExpirationDate: 'Date',
+	/**
+	 * If the app is managed by Xcode
+	 */
+	IsXcodeManaged: 'boolean',
+	/**
+	 * The name of the provision
+	 */
+	Name: 'string',
+	/**
+	 * The platforms the provision is for
+	 */
+	Platform: type.string.array(),
+	/**
+	 * The UDIDs the provision is for (typically for individual developer accounts)
+	 */
+	ProvisionedDevices: type.string.array(),
+	/**
+	 * The team identifier
+	 */
+	TeamIdentifier: type.string.array(),
+	/**
+	 * The team name
+	 */
+	TeamName: 'string',
+	/**
+	 * How long the provision is valid for (in days)
+	 */
+	TimeToLive: 'number',
+	/**
+	 * The UUID of the provision
+	 */
+	UUID: 'string',
+	/**
+	 * The version of the provision
+	 */
+	Version: 'number',
+	/**
+	 * The developer certificates (as base64 encoded strings)
+	 */
+	DeveloperCertificates: type.string.array(),
+	/**
+	 * The DER encoded profile (as a base64 encoded string)
+	 */
+	'DER-Encoded-Profile': 'string',
+	/**
+	 * The entitlements
+	 */
+	Entitlements: type.Record(type.string, type.unknown),
 });
 
-/**
- * The provision object
- * @property AppIDName - The app ID name
- * @property ApplicationIdentifierPrefix - The application identifier prefix
- * @property CreationDate - The creation date
- * @property ExpirationDate - The expiration date
- * @property IsXcodeManaged - If the app is managed by Xcode
- * @property Name - The name of the provision
- * @property Platform - The platforms the provision is for
- * @property ProvisionedDevices - The UDIDs the provision is for (typically for individual developer accounts)
- * @property TeamIdentifier - The team identifier
- * @property TeamName - The team name
- * @property TimeToLive - How long the provision is valid for (in days)
- * @property UUID - The UUID of the provision
- * @property Version - The version of the provision
- * @property DeveloperCertificates - The developer certificates (as base64 encoded strings)
- * @property DER-Encoded-Profile - The DER encoded profile (as a base64 encoded string)
- * @property Entitlements - The entitlements
- * @interface
- */
-export type Provision = typeof parse_ipa_schema_provision.static;
+const _ipa_origin_type = type.enumerated('url', 'file', 'blob');
+const _ipa_origin = type({
+	type: _ipa_origin_type,
+	value: 'string',
+});
 
-export type IPAInput = string | File | BunFile;
-export type IPAOriginType = 'url' | 'file' | 'blob';
-export interface IPAOrigin {
-	type: IPAOriginType;
-	value: string;
-}
-export interface IPA {
+const _ipa_parser_info = type({
+	/** the epoch time when the parser completed */
+	time: 'number',
+	/** `parse-ipa` version */
+	version: 'string',
+	/** how long it took to parse */
+	duration: 'number',
+	/** origin of the IPA */
+	origin: _ipa_origin,
+});
+
+export const schema_ipa = type({
 	/**
 	 * The app bundle identifier
 	 * @example "com.apple.mobilesafari"
 	 */
-	bundle_id: string;
+	bundle_id: 'string',
 	/**
 	 * The app name
 	 * @example "Safari"
 	 */
-	name: string;
+	name: 'string',
 	/**
 	 * The app version
 	 * @example "15.0"
 	 */
-	version: string;
+	version: 'string',
 	/**
 	 * The app build number
 	 * @example "19A339"
 	 */
-	build: string;
+	build: 'string',
 	/**
 	 * The app icon size
 	 * @example 17692
 	 */
-	size: number;
+	size: 'number',
 	/** Base64 encoded PNG */
-	icon: string | null;
+	icon: 'string | null',
 	/**
 	 * signing information, if available.
 	 *
@@ -88,15 +122,17 @@ export interface IPA {
 	 *
 	 * @see {@link Provision}
 	 */
-	provision: Provision | null;
-	parser_info: {
-		/** the epoch time when the parser completed */
-		time: number;
-		/** `parse-ipa` version */
-		version: string;
-		/** how long it took to parse */
-		duration: number;
-		/** origin of the IPA */
-		origin: IPAOrigin;
-	};
-}
+	provision: schema_provision.or('null'),
+	parser_info: _ipa_parser_info,
+});
+
+export type IPAInput = string | File | Bun.BunFile;
+
+/** @interface */
+export type Provision = typeof schema_provision.infer;
+
+/** @interface */
+export type IPAOrigin = typeof _ipa_origin.infer;
+
+/** @interface */
+export type IPA = typeof schema_ipa.infer;
