@@ -62,6 +62,8 @@ export const _format_ipa_info = (raw: RawIPA): IPA => ({
 		? {
 				provision: {
 					...raw.provision,
+					CreationDate: raw.provision.CreationDate.toISOString(),
+					ExpirationDate: raw.provision.ExpirationDate.toISOString(),
 					DeveloperCertificates: raw.provision.DeveloperCertificates.map((c) =>
 						btoa(String.fromCharCode(...new Uint8Array(c))),
 					),
