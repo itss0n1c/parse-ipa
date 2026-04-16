@@ -1,11 +1,8 @@
 import { defineConfig, type OutExtensionFactory, type UserConfig } from 'tsdown';
 
-const outExtensions: OutExtensionFactory = () => ({
-	dts: '.d.ts',
-	js: '.js',
-});
+const outExtensions: OutExtensionFactory = () => ({ dts: '.d.ts', js: '.js' });
+
 const base_config: UserConfig = {
-	dts: true,
 	minify: true,
 	outExtensions,
 };

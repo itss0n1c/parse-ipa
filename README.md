@@ -1,4 +1,5 @@
 # parse-ipa
+
 ### Gather information about an IPA file. Used In [IPA Installer API](https://ipa.s0n1c.ca).
 
 <a href="https://discord.gg/bMFPpxtMTe"><img src="https://img.shields.io/discord/977286501756968971?color=5865F2&logo=discord&logoColor=white" alt="Discord server" /></a>
@@ -7,7 +8,6 @@
 
 ### Documentation live at https://s0n1c.ca/parse-ipa
 
-
 ## Installation
 
 ```zsh
@@ -15,6 +15,7 @@
 ```
 
 ## Usage
+
 `parse-ipa` is available via server-side (Bun & Node.js), as well as in browser.
 
 <sub>**Note**: Browser does not support file system paths.</sub>
@@ -23,11 +24,11 @@
 import { parse_ipa } from "parse-ipa";
 
 let ipa = await parse_ipa(
-  "https://github.com/NeoFreeBird/app/releases/download/2.2/NeoFreeBird-2.2-Twitter-11.35.ipa"
+    "https://github.com/Aidoku/Aidoku/releases/download/v0.8.2/Aidoku.ipa",
 );
 
-console.log(ipa.name); // Twitter
-console.log(ipa.version); // 11.35
-console.log(ipa.build); // 12
-console.log(ipa.bundle_id); // com.atebits.Tweetie2
+console.log(ipa.name); // Aidoku
+console.log(ipa.version); // 0.8.2
+console.log(ipa.build); // 4
+console.log(ipa.bundle_id); // com.aidoku.Aidoku
 ```

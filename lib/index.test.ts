@@ -11,7 +11,7 @@ const proj_root = join(import.meta.url.replace(`file://${process.platform === 'w
 const test_folder = join(proj_root, 'test');
 await mkdir(test_folder, { recursive: true });
 
-const ipa_link = 'https://github.com/utmapp/UTM/releases/download/v4.7.4/UTM.ipa';
+const ipa_link = 'https://github.com/Aidoku/Aidoku/releases/download/v0.8.2/Aidoku.ipa';
 const id = new Bun.MD5().update(ipa_link).digest('hex');
 
 function test_ipa(ipa: IPA) {
@@ -23,10 +23,10 @@ function test_ipa(ipa: IPA) {
 		time: `${Math.round(ipa.parser_info.duration)}ms`,
 		origin: `${ipa.parser_info.origin.type}:${ipa.parser_info.origin.value}`,
 	});
-	expect(ipa.name).toBe('UTM');
-	expect(ipa.version).toBe('4.7.4');
-	expect(ipa.build).toBe('115');
-	expect(ipa.bundle_id).toBe('com.utmapp.UTM');
+	expect(ipa.name).toBe('Aidoku');
+	expect(ipa.version).toBe('0.8.2');
+	expect(ipa.build).toBe('4');
+	expect(ipa.bundle_id).toBe('app.aidoku.Aidoku');
 	expect(ipa.size).toBeNumber();
 	expect(ipa.parser_info).toBeDefined();
 	expect(ipa.parser_info.time).toBeNumber();
