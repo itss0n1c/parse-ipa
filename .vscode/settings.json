@@ -1,0 +1,29 @@
+{
+	"[typescript]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"[javascript]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"[json]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"editor.codeActionsOnSave": {
+		"source.formatDocument": "explicit",
+		"source.fixAll.biome": "explicit",
+		"source.organizeImports.biome": "explicit"
+	},
+	"files.insertFinalNewline": true,
+	"files.eol": "\n",
+	"editor.insertSpaces": false,
+	"editor.minimap.scale": 2,
+	"editor.minimap.sectionHeaderFontSize": 12,
+	"js/ts.inlayHints.variableTypes.enabled": false,
+	"js/ts.inlayHints.functionLikeReturnTypes.enabled": false,
+	"js/ts.inlayHints.enumMemberValues.enabled": false,
+	"js/ts.inlayHints.parameterTypes.enabled": false,
+	"js/ts.tsserver.experimental.enableProjectDiagnostics": true,
+	"js/ts.inlayHints.parameterNames.enabled": "none",
+	"js/ts.inlayHints.parameterNames.suppressWhenArgumentMatchesName": true,
+	"remote.autoForwardPorts": false
+}
