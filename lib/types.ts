@@ -10,12 +10,12 @@ export const schema_provision = type({
 		.describe('An array of strings representing the application identifier prefixes.'),
 	CreationDate: type('string.date.iso').describe('The date when the provisioning profile was created.'),
 	ExpirationDate: type('string.date.iso').describe('The date when the provisioning profile expires.'),
-	IsXcodeManaged: type('boolean').describe('Indicates if the provisioning profile is managed by Xcode.'),
+	'IsXcodeManaged?': type('boolean').describe('Indicates if the provisioning profile is managed by Xcode.'),
 	Name: type('string').describe('The name of the provisioning profile.'),
 	Platform: type.string
 		.array()
 		.describe('An array of strings representing the platforms for which the provisioning profile is valid.'),
-	ProvisionedDevices: type.string
+	'ProvisionedDevices?': type.string
 		.array()
 		.describe('An array of strings representing the devices provisioned with the provisioning profile.'),
 	TeamIdentifier: type.string.array().describe('An array of strings representing the team identifiers.'),
@@ -24,7 +24,9 @@ export const schema_provision = type({
 	UUID: type('string').describe('The unique identifier for the provisioning profile.'),
 	Version: type('number').describe('The version of the provisioning profile.'),
 	DeveloperCertificates: type.string.array().describe('An array of strings representing the developer certificates.'),
-	'DER-Encoded-Profile': type('string').describe('The DER-encoded representation of the provisioning profile.'),
+	'DER-Encoded-Profile?': type('string').describe(
+		'The base64-encoded DER representation of the provisioning profile.',
+	),
 	Entitlements: type
 		.Record(type.string, type.unknown)
 		.describe('A record of entitlements for the provisioning profile.'),
@@ -38,10 +40,11 @@ const _ipa_origin = type({
 }).describe('The origin of the IPA, including its type and value.');
 
 const _ipa_parser_info = type({
-	time: type('number').describe('The time taken to parse the IPA, in milliseconds.'),
+	time: type('number').describe('The Unix timestamp when parsing completed, in milliseconds.'),
 	version: type('string').describe('The version of the parse-ipa tool.'),
 	duration: type('number').describe('The duration of the parsing operation, in milliseconds.'),
 	origin: _ipa_origin,
+	errors: type('string[]').describe('Diagnostics for recoverable parsing failures.'),
 }).describe('Information about the parsing operation of the IPA.');
 
 export const schema_ipa = type({
@@ -63,7 +66,7 @@ export const schema_ipa = type({
 	'The structure of the IPA, including its bundle ID, name, version, build number, size, icon, provisioning profile, and parsing information.',
 );
 
-export type IPAInput = string | File | Bun.BunFile;
+export type IPAInput = string | Blob;
 
 /** @interface */
 export type Provision = typeof schema_provision.infer;

@@ -1,41 +1,15 @@
-import { HTTPRangeReader, unzip, type ZipInfo } from 'unzipit';
-import { _parse_raw } from './raw';
+import { parse_source } from './raw';
 import type { IPA, IPAInput } from './types';
-import { _format_ipa_info, _get_origin, _is_url } from './util';
+import { is_remote, with_ipa_error } from './util';
 
 export * from './types';
 export { IPAError } from './util';
 
-/**
- *
- * @param input - string url, File, or BunFile
- * @returns parsed IPA
- * @throws {@link IPAError}
- */
+/** Parse an HTTP(S) URL, local path, or Blob without reading the whole IPA up front. */
 export async function parse_ipa(input: IPAInput): Promise<IPA> {
-	const zip_data = await _get_zip(input);
-	const raw = await _parse_raw(zip_data);
-	return _format_ipa_info(raw);
-}
-
-async function _get_zip(input: IPAInput) {
-	let zip: ZipInfo | undefined;
-	let size = 0;
-	if (typeof input === 'string') {
-		if (_is_url(input)) {
-			const reader = new HTTPRangeReader(input);
-			size = await reader.getLength();
-			zip = await unzip(reader);
-		} else {
-			const file = Bun.file(input);
-			size = file.size;
-			zip = await unzip(file);
-		}
-	} else {
-		size = input.size;
-		zip = await unzip(input);
-	}
-	const origin = _get_origin(input);
-
-	return { zip, size, origin };
+	return with_ipa_error('Could not read IPA', async () => {
+		if (typeof input !== 'string' || is_remote(input)) return parse_source(input);
+		const blob = Bun.file(input);
+		return parse_source(blob, { type: 'file', value: input });
+	});
 }

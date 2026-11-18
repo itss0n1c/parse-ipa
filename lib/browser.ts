@@ -1,35 +1,13 @@
-import { HTTPRangeReader, unzip, type ZipInfo } from 'unzipit';
-import { _parse_raw } from './raw';
+import { parse_source } from './raw';
 import type { IPA, IPAInput } from './types';
-import { _format_ipa_info, _get_origin, _is_url, IPAError } from './util';
+import { IPAError, is_remote, with_ipa_error } from './util';
 
 export * from './types';
 
-const no_path_error = new IPAError(`Browser's do not support file paths. Please provide a URL or a Blob/File object.`);
-
+/** Parse an HTTP(S) URL or Blob (including a file selected in the browser). */
 export async function parse_ipa(input: IPAInput): Promise<IPA> {
-	if (typeof input === 'string' && !_is_url(input)) throw no_path_error;
-	const zip_data = await _get_zip(input);
-	const raw = await _parse_raw(zip_data);
-	return _format_ipa_info(raw);
-}
-
-async function _get_zip(input: IPAInput) {
-	let zip: ZipInfo | undefined;
-	let size = 0;
-	if (typeof input === 'string') {
-		if (_is_url(input)) {
-			const reader = new HTTPRangeReader(input);
-			size = await reader.getLength();
-			zip = await unzip(reader);
-		} else {
-			throw no_path_error;
-		}
-	} else {
-		size = input.size;
-		zip = await unzip(input);
+	if (typeof input === 'string' && !is_remote(input)) {
+		throw new IPAError('Browser input must be an HTTP(S) URL or a Blob/File.');
 	}
-	const origin = _get_origin(input);
-
-	return { zip, size, origin };
+	return with_ipa_error('Could not read IPA', () => parse_source(input));
 }
