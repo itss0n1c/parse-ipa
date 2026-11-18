@@ -24,6 +24,7 @@
 	},
 	"scripts": {
 		"dev": "bun test --watch",
+		"dev:live": "TEST_LIVE_IPA=1 bun dev",
 		"build:lib": "tsdown",
 		"build:docs": "typedoc --options typedoc.json",
 		"build": "bun build:lib && bun build:docs",

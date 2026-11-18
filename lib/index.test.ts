@@ -206,3 +206,44 @@ test('HTTP reads skip unrelated payload and reject servers ignoring Range', asyn
 		await server.stop(true);
 	}
 });
+
+test.skipIf(process.env.TEST_LIVE_IPA !== '1')(
+	'Aidoku v0.9 (build 4) produces the same output from a URL, path, and Blob',
+	async () => {
+		const url = 'https://github.com/Aidoku/Aidoku/releases/download/v0.9-4/Aidoku.ipa';
+		const remote = await parse_ipa(url);
+		expect(remote).toMatchObject({
+			name: 'Aidoku',
+			version: '0.9',
+			build: '4',
+			bundle_id: 'app.aidoku.Aidoku',
+		});
+		expect(remote.parser_info.origin).toEqual({ type: 'url', value: url });
+		expect(schema_ipa.allows(remote)).toBe(true);
+
+		const response = await fetch(url, { signal: AbortSignal.timeout(60_000) });
+		expect(response.ok).toBe(true);
+		const blob = await response.blob();
+		expect(remote.size).toBe(blob.size);
+		const dir = await mkdtemp(join(tmpdir(), 'parse-ipa-aidoku-'));
+		try {
+			const path = join(dir, 'Aidoku.ipa');
+			await writeFile(path, new Uint8Array(await blob.arrayBuffer()));
+			const local = await parse_ipa(path);
+			const in_memory = await parse_ipa(blob);
+			expect(local.parser_info.origin).toEqual({ type: 'file', value: path });
+			expect(in_memory.parser_info.origin.type).toBe('blob');
+
+			// Only the timing and origin should differ between input modes.
+			const comparable = ({ parser_info, ...metadata }: typeof remote) => ({
+				...metadata,
+				parser_info: { version: parser_info.version, errors: parser_info.errors },
+			});
+			expect(comparable(local)).toEqual(comparable(remote));
+			expect(comparable(in_memory)).toEqual(comparable(remote));
+		} finally {
+			await rm(dir, { recursive: true, force: true });
+		}
+	},
+	120_000,
+);
