@@ -1,6 +1,8 @@
 # parse-ipa
 
-### Gather information about an IPA file. Used In [IPA Installer API](https://ipa.s0n1c.ca).
+### Extract app metadata from iOS IPA files.
+
+Get the bundle ID, version, and build number, plus the standalone icon and provisioning metadata when available. Used by [IPA Installer API](https://ipa.s0n1c.ca).
 
 <a href="https://discord.gg/bMFPpxtMTe"><img src="https://img.shields.io/discord/977286501756968971?color=5865F2&logo=discord&logoColor=white" alt="Discord server" /></a>
 <a href="https://www.npmjs.com/package/parse-ipa"><img src="https://img.shields.io/npm/v/parse-ipa?maxAge=3600" alt="npm version" /></a>

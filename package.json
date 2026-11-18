@@ -1,7 +1,7 @@
 {
 	"name": "parse-ipa",
 	"version": "4.0.0",
-	"description": "Gather information about an IPA file.",
+	"description": "Extract app metadata from iOS IPA files.",
 	"license": "GPL-3.0-only",
 	"type": "module",
 	"files": [
