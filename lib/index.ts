@@ -9,7 +9,7 @@ export { IPAError } from './util';
 export async function parse_ipa(input: IPAInput): Promise<IPA> {
 	return with_ipa_error('Could not read IPA', async () => {
 		if (typeof input !== 'string' || is_remote(input)) return parse_source(input);
-		const blob = Bun.file(input);
+		const blob = typeof Bun !== 'undefined' ? Bun.file(input) : await (await import('node:fs')).openAsBlob(input);
 		return parse_source(blob, { type: 'file', value: input });
 	});
 }

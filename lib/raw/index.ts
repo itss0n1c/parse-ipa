@@ -15,9 +15,38 @@ function required_string(info: Record<string, unknown>, key: string): string {
 	return value;
 }
 
+// unzipit's default reader accepts HTTP 200 and would download the entire IPA.
+class RangeReader extends HTTPRangeReader {
+	readonly #source_url: string;
+
+	constructor(url: string) {
+		super(url);
+		this.#source_url = url;
+	}
+
+	override async read(offset: number, size: number): Promise<Uint8Array<ArrayBuffer>> {
+		if (!size) return new Uint8Array();
+		const range = `${offset}-${offset + size - 1}`;
+		const response = await fetch(this.#source_url, { headers: { Range: `bytes=${range}` } });
+		const length = response.headers.get('content-length');
+		const content_range = response.headers.get('content-range');
+		if (
+			response.status !== 206 ||
+			(length !== null && Number(length) !== size) ||
+			(content_range !== null && !content_range.startsWith(`bytes ${range}/`))
+		) {
+			await response.body?.cancel();
+			throw new IPAError('Remote IPA server did not honor the byte range request');
+		}
+		const bytes = new Uint8Array(await response.arrayBuffer());
+		if (bytes.length !== size) throw new IPAError('Remote IPA returned an incomplete or invalid byte range');
+		return bytes;
+	}
+}
+
 export async function parse_source(input: IPAInput, origin?: IPAOrigin): Promise<IPA> {
 	const start = performance.now();
-	const source = typeof input === 'string' ? new HTTPRangeReader(input) : input;
+	const source = typeof input === 'string' ? new RangeReader(input) : input;
 	const size = source instanceof HTTPRangeReader ? await source.getLength() : source.size;
 	const { entries } = await unzipRaw(source);
 	const plists = entries.filter(({ name }) => /^Payload\/[^/]+\.app\/Info\.plist$/.test(name));

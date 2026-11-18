@@ -3,6 +3,7 @@ import type { IPA, IPAInput } from './types';
 import { IPAError, is_remote, with_ipa_error } from './util';
 
 export * from './types';
+export { IPAError } from './util';
 
 /** Parse an HTTP(S) URL or Blob (including a file selected in the browser). */
 export async function parse_ipa(input: IPAInput): Promise<IPA> {

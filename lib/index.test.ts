@@ -1,6 +1,10 @@
 import { expect, test } from 'bun:test';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { strToU8, zipSync } from 'fflate';
 import { IPAError, parse_ipa, schema_ipa } from '.';
+import { IPAError as BrowserIPAError, parse_ipa as parse_browser } from './browser';
 import { to_base64 } from './util';
 
 const root = 'Payload/Main.app/';
@@ -154,4 +158,51 @@ test('valid provisioning data is normalized to JSON-friendly fields', async () =
 test('base64 handles large byte arrays', () => {
 	const bytes = new Uint8Array(1_000_001).map((_, i) => i % 256);
 	expect(to_base64(bytes)).toBe(Buffer.from(bytes).toString('base64'));
+});
+
+test('browser accepts blobs and rejects paths; Bun accepts paths', async () => {
+	const blob = archive({ [`${root}Info.plist`]: info('test.main') });
+	expect((await parse_browser(blob)).bundle_id).toBe('test.main');
+	await expect(parse_browser('/test.ipa')).rejects.toThrow(BrowserIPAError);
+	const dir = await mkdtemp(join(tmpdir(), 'parse-ipa-'));
+	try {
+		const path = join(dir, 'test.ipa');
+		await writeFile(path, new Uint8Array(await blob.arrayBuffer()));
+		expect((await parse_ipa(path)).parser_info.origin).toEqual({ type: 'file', value: path });
+	} finally {
+		await rm(dir, { recursive: true, force: true });
+	}
+});
+
+test('HTTP reads skip unrelated payload and reject servers ignoring Range', async () => {
+	const blob = archive({
+		[`${root}Info.plist`]: info('test.main'),
+		[`${root}unused.bin`]: new Uint8Array(1024 * 1024),
+	});
+	let transferred = 0;
+	const server = Bun.serve({
+		hostname: '127.0.0.1',
+		port: 0,
+		fetch(request) {
+			if (request.method === 'HEAD') return new Response(null, { headers: { 'content-length': `${blob.size}` } });
+			if (new URL(request.url).pathname === '/no-range') return new Response(blob);
+			const range = /^bytes=(\d+)-(\d+)$/.exec(request.headers.get('range') ?? '');
+			if (!range) return new Response(null, { status: 400 });
+			const start = Number(range[1]);
+			const end = Number(range[2]);
+			const data = blob.slice(start, end + 1);
+			transferred += data.size;
+			return new Response(data, {
+				status: 206,
+				headers: { 'content-range': `bytes ${start}-${end}/${blob.size}` },
+			});
+		},
+	});
+	try {
+		expect((await parse_ipa(server.url.href)).bundle_id).toBe('test.main');
+		expect(transferred).toBeLessThan(blob.size / 4);
+		await expect(parse_ipa(new URL('/no-range', server.url).href)).rejects.toThrow('did not honor');
+	} finally {
+		await server.stop(true);
+	}
 });
