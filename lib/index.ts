@@ -1,9 +1,9 @@
-import { parse_source } from './raw';
-import type { IPA, IPAInput } from './types';
-import { is_remote, with_ipa_error } from './util';
+import { parse_source } from './raw/index.ts';
+import type { IPA, IPAInput } from './types.ts';
+import { is_remote, with_ipa_error } from './util.ts';
 
-export * from './types';
-export { IPAError } from './util';
+export * from './types.ts';
+export { IPAError } from './util.ts';
 
 /** Parse an HTTP(S) URL, local path, or Blob without reading the whole IPA up front. */
 export async function parse_ipa(input: IPAInput): Promise<IPA> {

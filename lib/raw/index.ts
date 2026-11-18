@@ -2,8 +2,8 @@ import { parse } from '@plist/plist';
 import { decgbi } from 'decgbi';
 import { HTTPRangeReader, unzipRaw, type ZipEntry } from 'unzipit';
 import package_info from '../../package.json';
-import { type IPA, type IPAInput, type IPAOrigin, type Provision, schema_provision } from '../types';
-import { IPAError, to_base64, with_ipa_error } from '../util';
+import { type IPA, type IPAInput, type IPAOrigin, type Provision, schema_provision } from '../types.ts';
+import { IPAError, to_base64, with_ipa_error } from '../util.ts';
 
 function as_record(value: unknown): Record<string, unknown> | undefined {
 	if (value && typeof value === 'object' && !Array.isArray(value)) return value as Record<string, unknown>;

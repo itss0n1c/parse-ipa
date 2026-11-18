@@ -3,9 +3,9 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { strToU8, zipSync } from 'fflate';
-import { IPAError, parse_ipa, schema_ipa } from '.';
-import { IPAError as BrowserIPAError, parse_ipa as parse_browser } from './browser';
-import { to_base64 } from './util';
+import { IPAError as BrowserIPAError, parse_ipa as parse_browser } from './browser.ts';
+import { IPAError, parse_ipa, schema_ipa } from './index.ts';
+import { to_base64 } from './util.ts';
 
 const root = 'Payload/Main.app/';
 const watch = `${root}Watch/Watch.app/`;

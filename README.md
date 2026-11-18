@@ -22,11 +22,9 @@ Node.js (22.17+). In a browser, import from `parse-ipa/browser` and pass a
 `Content-Length` and byte-range requests; browser requests also need CORS access.
 
 ```ts
-import { parse_ipa } from "parse-ipa";
+import { parse_ipa } from 'parse-ipa';
 
-let ipa = await parse_ipa(
-    "https://github.com/Aidoku/Aidoku/releases/download/v0.8.2/Aidoku.ipa",
-);
+let ipa = await parse_ipa('https://github.com/Aidoku/Aidoku/releases/download/v0.8.2/Aidoku.ipa');
 
 console.log(ipa.name); // Aidoku
 console.log(ipa.version); // 0.8.2
