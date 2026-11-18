@@ -14,7 +14,7 @@ export default defineConfig([
 	},
 	{
 		...base_config,
-		dts: false,
+		platform: 'neutral',
 		entry: './lib/browser.ts',
 	},
 ]);

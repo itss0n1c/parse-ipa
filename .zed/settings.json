@@ -1,0 +1,36 @@
+{
+	"format_on_save": "on",
+	"formatter": {
+		"language_server": {
+			"name": "biome"
+		}
+	},
+	"code_actions_on_format": {
+		"source.fixAll.biome": true,
+		"source.organizeImports.biome": false
+	},
+	"hard_tabs": true,
+	"line_ending": "enforce_lf",
+	"ensure_final_newline_on_save": true,
+	"languages": {
+		"TypeScript": {
+			"language_servers": ["vtsls", "!typescript-language-server", "..."]
+		},
+		"TSX": {
+			"language_servers": ["vtsls", "!typescript-language-server", "..."]
+		}
+	},
+	"lsp": {
+		"vtsls": {
+			"settings": {
+				"typescript": {
+					"tsserver": {
+						"experimental": {
+							"enableProjectDiagnostics": true
+						}
+					}
+				}
+			}
+		}
+	}
+}

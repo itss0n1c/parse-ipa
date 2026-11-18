@@ -1,118 +1,175 @@
 import { parse } from '@plist/plist';
 import { decgbi } from 'decgbi';
-import type { ZipEntry } from 'unzipit';
-import { _basename, _substring, _try_prom, IPAError } from '../util';
-import type { IPAZipData, RawProvision } from './types';
+import { HTTPRangeReader, unzipRaw, type ZipEntry } from 'unzipit';
+import package_info from '../../package.json';
+import { type IPA, type IPAInput, type IPAOrigin, type Provision, schema_provision } from '../types.ts';
+import { IPAError, to_base64, with_ipa_error } from '../util.ts';
 
-export * from './types';
+function as_record(value: unknown): Record<string, unknown> | undefined {
+	if (value && typeof value === 'object' && !Array.isArray(value)) return value as Record<string, unknown>;
+}
 
-export async function _parse_raw(input: IPAZipData) {
+function required_string(info: Record<string, unknown>, key: string): string {
+	const value = info[key];
+	if (typeof value !== 'string' || !value.trim()) throw new IPAError(`Invalid or missing ${key} in Info.plist`);
+	return value;
+}
+
+// unzipit's default reader accepts HTTP 200 and would download the entire IPA.
+class RangeReader extends HTTPRangeReader {
+	readonly #source_url: string;
+
+	constructor(url: string) {
+		super(url);
+		this.#source_url = url;
+	}
+
+	override async read(offset: number, size: number): Promise<Uint8Array<ArrayBuffer>> {
+		if (!size) return new Uint8Array();
+		const range = `${offset}-${offset + size - 1}`;
+		const response = await fetch(this.#source_url, { headers: { Range: `bytes=${range}` } });
+		const length = response.headers.get('content-length');
+		const content_range = response.headers.get('content-range');
+		if (
+			response.status !== 206 ||
+			(length !== null && Number(length) !== size) ||
+			(content_range !== null && !content_range.startsWith(`bytes ${range}/`))
+		) {
+			await response.body?.cancel();
+			throw new IPAError('Remote IPA server did not honor the byte range request');
+		}
+		const bytes = new Uint8Array(await response.arrayBuffer());
+		if (bytes.length !== size) throw new IPAError('Remote IPA returned an incomplete or invalid byte range');
+		return bytes;
+	}
+}
+
+export async function parse_source(input: IPAInput, origin?: IPAOrigin): Promise<IPA> {
 	const start = performance.now();
-	const { zip, size, origin } = input;
-	const entries = Object.values(zip.entries);
-
-	const info = await _get_info(entries);
-	const icon = await _try_prom(_get_icon(info, entries));
-	const provision = await _try_prom(_get_provision(entries));
-
-	const end = performance.now();
-
+	const source = typeof input === 'string' ? new RangeReader(input) : input;
+	const size = source instanceof HTTPRangeReader ? await source.getLength() : source.size;
+	const { entries } = await unzipRaw(source);
+	const plists = entries.filter(({ name }) => /^Payload\/[^/]+\.app\/Info\.plist$/.test(name));
+	if (plists.length !== 1) {
+		throw new IPAError(
+			plists.length ? 'Multiple main app Info.plist entries found' : 'Main app Info.plist not found',
+		);
+	}
+	const plist = plists[0];
+	const root = plist.name.slice(0, -'Info.plist'.length);
+	const info = await with_ipa_error('Could not parse main app Info.plist', async () => {
+		const value = as_record(parse(await plist.arrayBuffer()));
+		if (!value) throw new IPAError('Main app Info.plist must contain a dictionary');
+		return value;
+	});
+	const bundle_id = required_string(info, 'CFBundleIdentifier');
+	const name = required_string(info, 'CFBundleName');
+	const version = required_string(info, 'CFBundleShortVersionString');
+	const build = required_string(info, 'CFBundleVersion');
+	const icon_entry = select_icon(root, info, entries);
+	const icon = icon_entry
+		? await with_ipa_error('Could not read or decode the main app icon', async () =>
+				to_base64(await decgbi(new Uint8Array(await icon_entry.arrayBuffer()))),
+			)
+		: null;
+	const errors: string[] = [];
+	let provision: Provision | null = null;
+	const profiles = entries.filter(({ name }) => name === `${root}embedded.mobileprovision`);
+	if (profiles.length > 1) {
+		errors.push('Multiple main app embedded.mobileprovision entries found');
+	} else if (profiles.length === 1) {
+		try {
+			provision = normalize_provision(await profiles[0].text());
+		} catch {
+			errors.push('Could not parse or normalize embedded.mobileprovision');
+		}
+	}
 	return {
-		info,
+		bundle_id,
+		name,
+		version,
+		build,
 		size,
 		icon,
 		provision,
-		duration: end - start,
-		origin,
+		parser_info: {
+			time: Date.now(),
+			duration: performance.now() - start,
+			version: package_info.version,
+			origin:
+				origin ??
+				(typeof input === 'string'
+					? { type: 'url', value: input }
+					: { type: 'blob', value: 'name' in input && typeof input.name === 'string' ? input.name : 'Blob' }),
+			errors,
+		},
 	};
 }
 
-async function _get_file(match: string, entries: ZipEntry[]) {
-	let matching: ZipEntry | undefined;
-	for (const k of entries) {
-		if (!k.name.includes(match)) continue;
-		matching = k;
-	}
-	const base = _basename(match);
-	if (!matching) throw new IPAError(`${base} not found`);
-	return matching;
+function icon_stem(name: string): string {
+	return name.replace(/\.png$/i, '').replace(/(?:@[123]x|~(?:iphone|ipad))+$/i, '');
 }
 
-async function _get_info(entries: ZipEntry[]) {
-	const file = await _get_file('.app/Info.plist', entries);
-	const str = await file.arrayBuffer();
-	if (!str) throw new IPAError('Info.plist not found');
-	return parse(str) as RawInfo;
-}
-
-function _icon_sort(a: ZipEntry, b: ZipEntry) {
-	if (!a || !b) return 0;
-	const [a_base, a_size] = _icon_clean_name(a.name);
-	const [b_base, b_size] = _icon_clean_name(b.name);
-	if (a_base === b_base) return b_size - a_size;
-	return b_base - a_base;
-}
-
-async function _get_icon(info: RawInfo, _entries: ZipEntry[]) {
-	let icon_arr: string[] = [];
-	for (const entry of _entries) {
-		if (!entry.name.includes('AppIcon')) continue;
-		icon_arr.push(entry.name);
-	}
-
-	icon_arr = _filter_icons(info, icon_arr);
-
-	const entries: ZipEntry[] = [];
-	for (const i of icon_arr) {
-		const file = await _try_prom(_get_file(i, _entries));
-		if (!file) continue;
-		entries.push(file);
-	}
-	entries.sort(_icon_sort);
-
-	const icon = entries[0];
-	if (!icon) throw new IPAError('No icon found');
-
-	const arr = await icon.arrayBuffer().then((x) => new Uint8Array(x));
-	return decgbi(arr);
-}
-
-async function _get_provision(entries: ZipEntry[]) {
-	const file = await _get_file('.app/embedded.mobileprovision', entries);
-	const str = await file.text();
-	if (!str) throw new IPAError('embedded.mobileprovision not found');
-	return _parse_provision(str);
-}
-
-export const _parse_provision = (mp: string) => parse(_substring(mp, '<plist', '</plist>')) as RawProvision;
-
-export function _icon_clean_name(str: string): [number, number] {
-	const base_name = _basename(str).replace('AppIcon', '').replace('.png', '').replace('~ipad', '');
-	if (!base_name.includes('@')) return [Number.parseInt(base_name.split('x')[0], 10), 1];
-	const [base, size] = base_name.split('@');
-	return [Number.parseInt(base.split('x')[0], 10), Number.parseInt(size.replace('x', ''), 10)];
-}
-
-// biome-ignore lint/suspicious/noExplicitAny: value can be any type
-type RawInfo = Record<string, any>;
-function _filter_icons(info: RawInfo, _icon_arr: string[]) {
-	const _match_key = (key: string): string | undefined => Object.keys(info).find((k) => k.startsWith(key));
-	let icon_arr = _icon_arr;
-	const keys = Object.keys(info);
-	const found_keys = keys.filter((k) => k.startsWith('CFBundleIcons') || k.startsWith('CFBundleIcons~'));
-	if (found_keys.length > 0) {
-		for (const k of found_keys) {
-			if (!info[k].CFBundlePrimaryIcon.CFBundleIconFiles) continue;
-			icon_arr.push(...info[k].CFBundlePrimaryIcon.CFBundleIconFiles);
+function select_icon(root: string, info: Record<string, unknown>, entries: ZipEntry[]): ZipEntry | undefined {
+	const declared = new Set<string>();
+	function add(value: unknown) {
+		if (Array.isArray(value)) {
+			for (const name of value) add(name);
+		} else if (typeof value === 'string' && value.trim() && !/[\\/]/.test(value)) {
+			declared.add(icon_stem(value));
 		}
-	} else {
-		if (!info.CFBundleIconFiles)
-			if (!info.CFBundleIconFile) {
-				const find = _match_key('CFBundleIconFile~');
-				if (!find) icon_arr = [];
-				else icon_arr = [find];
-			} else icon_arr = [info.CFBundleIconFile];
-		else icon_arr = info.CFBundleIconFiles;
 	}
-	return icon_arr;
+	for (const suffix of ['', '~iphone', '~ipad']) {
+		const primary = as_record(as_record(info[`CFBundleIcons${suffix}`])?.CFBundlePrimaryIcon);
+		add(primary?.CFBundleIconFiles);
+		add(primary?.CFBundleIconName);
+		if (suffix === '') add(info.CFBundleIconName);
+	}
+	if (!declared.size) {
+		for (const suffix of ['', '~iphone', '~ipad']) {
+			add(info[`CFBundleIconFiles${suffix}`]);
+			add(info[`CFBundleIconFile${suffix}`]);
+		}
+	}
+	const candidates = entries.flatMap((entry) => {
+		if (!entry.name.startsWith(root)) return [];
+		const name = entry.name.slice(root.length);
+		if (name.includes('/') || !/\.png$/i.test(name)) return [];
+		const stem = icon_stem(name);
+		if (declared.size ? !declared.has(stem) : !/^AppIcon(?:\d+(?:\.\d+)?x\d+(?:\.\d+)?)?$/.test(stem)) return [];
+		const width = Number(/(\d+(?:\.\d+)?)x\d+(?:\.\d+)?$/.exec(stem)?.[1] ?? 0);
+		const scale = Number(/@([123])x/i.exec(name)?.[1] ?? 1);
+		return [{ entry, name, pixels: width * scale, scale }];
+	});
+	candidates.sort(
+		(a, b) => b.pixels - a.pixels || b.scale - a.scale || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0),
+	);
+	if (candidates.length > 1 && candidates[0].name === candidates[1].name) {
+		throw new IPAError('Multiple entries for the selected main app icon');
+	}
+	return candidates[0]?.entry;
+}
+
+function normalize_provision(text: string): Provision {
+	const start = text.indexOf('<plist');
+	const end = text.indexOf('</plist>', start);
+	if (start < 0 || end < 0) throw new IPAError('Provisioning profile has no XML plist');
+	const profile = as_record(parse(text.slice(start, end + '</plist>'.length)));
+	if (!profile) throw new IPAError('Provisioning plist must contain a dictionary');
+	const encode = (value: unknown) => {
+		if (value instanceof ArrayBuffer) return to_base64(new Uint8Array(value));
+		if (value instanceof Uint8Array) return to_base64(value);
+		throw new IPAError('Invalid provisioning data field');
+	};
+	return schema_provision.assert({
+		...profile,
+		CreationDate: profile.CreationDate instanceof Date ? profile.CreationDate.toISOString() : undefined,
+		ExpirationDate: profile.ExpirationDate instanceof Date ? profile.ExpirationDate.toISOString() : undefined,
+		DeveloperCertificates: Array.isArray(profile.DeveloperCertificates)
+			? profile.DeveloperCertificates.map(encode)
+			: undefined,
+		...(profile['DER-Encoded-Profile'] !== undefined
+			? { 'DER-Encoded-Profile': encode(profile['DER-Encoded-Profile']) }
+			: {}),
+	});
 }
